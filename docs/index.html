@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>/taste — Design DNA Extractor for Claude Code</title>
+  <meta name="description" content="Reverse-engineer any website's design taste. Tokens + trade-offs — not just what, but why. A Claude Code skill.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #FAFAF7;
+      --bg-card:   #F0F0EC;
+      --bg-code:   #E8E8E2;
+      --text:      #0A0A0A;
+      --text-2:    #3D3D3A;
+      --text-3:    #6B6B67;
+      --border:    #E2E2DC;
+      --accent:      #CF9FFC;
+      --accent-text: #6D28D9;
+      --accent-bg:   rgba(207,159,252,0.10);
+
+      --sans:    'Inter', system-ui, sans-serif;
+      --display: 'Inter Tight', system-ui, sans-serif;
+      --mono:    'Berkeley Mono','Fira Code','Cascadia Code',monospace;
+
+      --hero-size: clamp(2.75rem, 1.5rem + 5vw, 5.25rem);
+      --h2-size:   clamp(1.75rem, 1rem + 2.5vw, 2.75rem);
+      --section:   clamp(5rem, 4rem + 4vw, 9rem);
+      --container: 1200px;
+      --pad:       clamp(1.25rem, 4vw, 2.5rem);
+      --r:         6px;
+      --r-lg:      10px;
+      --dur:       180ms;
+      --ease:      cubic-bezier(0.25,0.46,0.45,0.94);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+    body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 1rem; line-height: 1.6; }
+    a { color: inherit; text-decoration: none; }
+    code, pre { font-family: var(--mono); }
+    button { cursor: pointer; border: none; background: none; font: inherit; }
+
+    .container { max-width: var(--container); margin: 0 auto; padding: 0 var(--pad); }
+    section { padding: var(--section) 0; border-top: 1px solid var(--border); }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(250,250,247,0.9); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: var(--container); margin: 0 auto; padding: 0 var(--pad);
+      height: 56px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .wordmark { font-family: var(--display); font-weight: 700; font-size: 1.05rem; letter-spacing: -0.04em; }
+    .wordmark em { color: var(--accent); font-style: normal; }
+    .nav-links { display: flex; align-items: center; gap: 1.75rem; }
+    .nav-links a { font-size: 0.875rem; color: var(--text-2); transition: color var(--dur) var(--ease); }
+    .nav-links a:hover { color: var(--text); }
+    .nav-gh {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 6px 14px; border-radius: 9999px; border: 1px solid var(--border);
+      font-size: 0.8rem; font-weight: 500;
+      transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+    }
+    .nav-gh:hover { border-color: var(--text-3); background: var(--bg-card); }
+
+    /* HERO */
+    .hero { padding: clamp(5rem,4rem + 4vw,9rem) 0 var(--section); border-top: none; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 4px 12px; border-radius: 9999px;
+      border: 1px solid var(--border); background: var(--bg-card);
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: 2rem;
+    }
+    .pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+    h1 {
+      font-family: var(--display); font-weight: 700;
+      font-size: var(--hero-size); line-height: 1.0; letter-spacing: -0.04em;
+      max-width: 16ch; margin-bottom: 1.5rem;
+    }
+    .hero-sub { font-size: clamp(1rem,0.9rem + 0.5vw,1.2rem); color: var(--text-2); max-width: 50ch; line-height: 1.55; margin-bottom: 2.5rem; }
+    .hero-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 2.5rem; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 10px 22px; border-radius: 9999px;
+      background: var(--text); color: var(--bg);
+      font-size: 0.875rem; font-weight: 600;
+      transition: opacity var(--dur) var(--ease);
+    }
+    .btn-primary:hover { opacity: 0.78; }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 10px 22px; border-radius: 9999px;
+      border: 1px solid var(--border);
+      font-size: 0.875rem; font-weight: 500;
+      transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+    }
+    .btn-ghost:hover { border-color: var(--text-3); background: var(--bg-card); }
+    .cmd-bar {
+      display: inline-flex; align-items: center; gap: 1rem;
+      padding: 11px 16px; border-radius: var(--r-lg);
+      border: 1px solid var(--border); background: var(--bg-card);
+      font-family: var(--mono); font-size: 0.8rem; color: var(--text-2); max-width: 100%;
+    }
+    .cmd-bar .ps { color: var(--text-3); user-select: none; }
+    .copy-btn {
+      padding: 3px 9px; border-radius: 4px; border: 1px solid var(--border);
+      background: var(--bg); font-size: 0.7rem; font-weight: 500; color: var(--text-3);
+      white-space: nowrap; transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+    }
+    .copy-btn:hover { color: var(--text); border-color: var(--text-3); }
+
+    /* SECTION CHROME */
+    .eyebrow { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 0.875rem; }
+    h2 { font-family: var(--display); font-weight: 700; font-size: var(--h2-size); line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 1rem; }
+    .sub { font-size: 1.05rem; color: var(--text-2); max-width: 52ch; line-height: 1.55; margin-bottom: clamp(2rem,1.5rem + 2vw,3.5rem); }
+
+    /* SLIDER */
+    .slider-wrap {
+      position: relative; overflow: hidden; border-radius: var(--r-lg);
+      border: 1px solid var(--border); user-select: none; cursor: col-resize;
+      aspect-ratio: 16/7;
+    }
+    .s-pane { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .s-after { clip-path: inset(0 50% 0 0); }
+    .s-line { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; background: #fff; transform: translateX(-50%); pointer-events: none; z-index: 10; }
+    .s-knob {
+      position: absolute; top: 50%; left: 50%; z-index: 11;
+      transform: translate(-50%,-50%);
+      width: 38px; height: 38px; border-radius: 50%;
+      background: #fff; border: 1.5px solid rgba(0,0,0,0.08);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: none; font-size: 0.7rem; color: #666; letter-spacing: -0.1em;
+    }
+    .s-tag {
+      position: absolute; top: 1rem; z-index: 12;
+      padding: 3px 10px; border-radius: 9999px;
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .s-tag-l { left: 1rem; background: rgba(0,0,0,0.55); color: #fff; }
+    .s-tag-r { right: 1rem; background: rgba(255,255,255,0.9); color: #0A0A0A; }
+
+    /* pane mockups */
+    .pane-bad {
+      background: #1A1A30; height: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 2.5rem; text-align: center; position: relative;
+    }
+    .pane-bad::before {
+      content: ''; position: absolute;
+      width: 380px; height: 380px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(110,70,240,0.45) 0%, transparent 70%);
+      top: 50%; left: 50%; transform: translate(-50%,-50%);
+    }
+    .pane-bad .demo-title { font-family: var(--display); font-weight: 700; font-size: clamp(1.25rem,1.5vw,2rem); color: #fff; margin-bottom: 0.75rem; position: relative; }
+    .pane-bad p { color: rgba(255,255,255,0.55); font-size: 0.875rem; margin-bottom: 1.5rem; position: relative; max-width: 36ch; }
+    .bad-cta { display: inline-block; padding: 10px 24px; border-radius: 9999px; background: linear-gradient(135deg,#7B5CF0,#5B8DEF); color: #fff; font-weight: 600; font-size: 0.875rem; position: relative; }
+
+    .pane-good { background: #08090A; height: 100%; display: flex; flex-direction: column; justify-content: center; padding: clamp(1.5rem,3vw,3rem); }
+    .pane-good-inner { max-width: 480px; }
+    .g-badge { display: inline-block; padding: 3px 10px; border-radius: 9999px; background: rgba(0,255,5,0.07); border: 1px solid rgba(0,255,5,0.15); color: rgba(0,220,5,0.8); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.5rem; }
+    .pane-good .demo-title { font-family: var(--display); font-weight: 600; font-size: clamp(1.25rem,1.5vw,2.25rem); letter-spacing: -0.04em; line-height: 1.0; color: #F7F8F8; margin-bottom: 1rem; }
+    .pane-good p { font-size: 0.875rem; color: #8A8F98; margin-bottom: 1.75rem; line-height: 1.6; }
+    .g-card { border-radius: 6px; box-shadow: rgb(35,37,42) 0px 0px 0px 1px inset; padding: 0.875rem 1.125rem; display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; background: rgba(255,255,255,0.025); }
+    .g-card span { color: #D0D6E0; font-size: 0.8rem; }
+    .g-card span:last-child { color: #62666D; }
+    .g-cta { display: inline-block; padding: 9px 20px; border-radius: 9999px; background: #F7F8F8; color: #08090A; font-size: 0.8rem; font-weight: 600; letter-spacing: -0.01em; }
+
+    /* THREE COLUMN */
+    .compare-grid { display: grid; grid-template-columns: repeat(3,1fr); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
+    .compare-col { background: var(--bg-card); display: flex; flex-direction: column; }
+    .compare-col + .compare-col { border-left: 1px solid var(--border); }
+    .col-head { padding: 1.125rem 1.5rem; border-bottom: 1px solid var(--border); }
+    .col-tier { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 0.2rem; }
+    .compare-col:last-child .col-tier { color: var(--accent-text); }
+    .col-title { font-size: 0.9rem; font-weight: 600; }
+    .col-body { flex: 1; padding: 1.25rem 1.5rem; }
+    .col-caption { padding: 1rem 1.5rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--text-3); line-height: 1.5; }
+
+    .mk1 { background: linear-gradient(135deg,#667eea,#764ba2); border-radius: var(--r); padding: 1.5rem; min-height: 170px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.625rem; text-align: center; }
+    .mk1 .mk-title { color: #fff; font-size: 0.95rem; font-weight: 700; }
+    .mk1 p { color: rgba(255,255,255,0.65); font-size: 0.75rem; }
+    .mk1-btn { background: #fff; color: #4338CA; padding: 6px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; }
+
+    .mk2 { background: #08090A; border-radius: var(--r); padding: 1.5rem; min-height: 170px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.625rem; text-align: center; }
+    .mk2 .mk-title { color: #F7F8F8; font-family: var(--display); font-size: 0.95rem; font-weight: 700; letter-spacing: -0.02em; }
+    .mk2 p { color: #8A8F98; font-size: 0.75rem; }
+    .mk2-btn { background: linear-gradient(135deg,rgba(120,80,255,0.75),rgba(90,130,240,0.6)); color: #fff; padding: 6px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+
+    .mk3 { background: #08090A; border-radius: var(--r); padding: 1.5rem; min-height: 170px; display: flex; flex-direction: column; justify-content: flex-start; gap: 0.625rem; box-shadow: rgb(35,37,42) 0px 0px 0px 1px inset; }
+    .mk3-badge { display: inline-block; padding: 2px 8px; border-radius: 9999px; background: rgba(0,255,5,0.07); border: 1px solid rgba(0,255,5,0.14); color: rgba(0,220,5,0.75); font-size: 0.58rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .mk3 .mk-title { color: #F7F8F8; font-family: var(--display); font-size: 0.9rem; font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; }
+    .mk3 p { color: #8A8F98; font-size: 0.7rem; line-height: 1.5; }
+    .mk3-btn { align-self: flex-start; background: #F7F8F8; color: #08090A; padding: 5px 13px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; }
+
+    /* PIPELINE */
+    .steps { display: grid; grid-template-columns: repeat(4,1fr); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; margin-bottom: 1.5rem; }
+    .step { background: var(--bg-card); padding: 1.75rem; }
+    .step + .step { border-left: 1px solid var(--border); }
+    .step-n { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 0.75rem; }
+    .step-name { font-family: var(--display); font-weight: 700; font-size: 1.1rem; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+    .step-desc { font-size: 0.8rem; color: var(--text-2); line-height: 1.55; }
+    .step-desc code { font-size: 0.75rem; background: var(--bg-code); padding: 1px 5px; border-radius: 3px; }
+    .callout { padding: 1.125rem 1.5rem; border-radius: var(--r-lg); border-left: 3px solid var(--accent); background: var(--accent-bg); font-size: 0.875rem; color: var(--text-2); line-height: 1.6; }
+    .callout strong { color: var(--text); }
+
+    /* PRINCIPLE */
+    .principle { border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
+    .p-head { padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); background: var(--bg-card); }
+    .p-tag { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent-text); margin-bottom: 0.4rem; }
+    .p-name { font-family: var(--display); font-weight: 700; font-size: 1.5rem; letter-spacing: -0.03em; }
+    .p-rows { display: grid; grid-template-columns: 130px 1fr; }
+    .p-lbl { padding: 1.125rem 1.5rem; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); display: flex; align-items: flex-start; }
+    .p-val { padding: 1.125rem 1.5rem; border-bottom: 1px solid var(--border); font-size: 0.875rem; line-height: 1.65; color: var(--text-2); }
+    .p-lbl:last-of-type, .p-val:last-of-type { border-bottom: none; }
+    .mono { font-family: var(--mono); font-size: 0.8rem; font-style: normal; background: var(--bg-code); padding: 1px 5px; border-radius: 3px; }
+
+    /* EXPORT GRID */
+    .export-grid { display: grid; grid-template-columns: repeat(3,1fr); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
+    .exp { background: var(--bg-card); padding: 1.125rem 1.5rem; }
+    .exp:not(:nth-child(3n+3)) { border-right: 1px solid var(--border); }
+    .exp:not(:nth-last-child(-n+3)) { border-bottom: 1px solid var(--border); }
+    .exp-tool { font-weight: 600; font-size: 0.875rem; margin-bottom: 0.25rem; }
+    .exp-path { font-family: var(--mono); font-size: 0.68rem; color: var(--text-3); word-break: break-all; }
+
+    /* MANIFESTO */
+    .manifesto p { font-size: clamp(1rem,0.9rem + 0.5vw,1.2rem); color: var(--text-2); line-height: 1.75; max-width: 58ch; margin-bottom: 1.5rem; }
+    .manifesto p:last-child { margin-bottom: 0; }
+    .manifesto strong { color: var(--text); }
+
+    /* INSTALL */
+    .install-steps { display: flex; flex-direction: column; gap: 1.25rem; }
+    .ist { display: flex; gap: 1.125rem; }
+    .ist-n { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--bg-card); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: var(--text-3); margin-top: 2px; }
+    .ist-body { flex: 1; }
+    .ist-body label { display: block; font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem; }
+    .code-block { background: var(--bg-code); border: 1px solid var(--border); border-radius: var(--r); padding: 0.875rem 1rem; font-family: var(--mono); font-size: 0.8rem; color: var(--text-2); overflow-x: auto; white-space: pre; }
+
+    /* FOOTER */
+    footer { border-top: 1px solid var(--border); padding: 1.75rem 0; }
+    .foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.875rem; }
+    .foot-l { font-size: 0.8rem; color: var(--text-3); }
+    .foot-l a { text-decoration: underline; text-decoration-color: var(--border); }
+    .foot-r { display: flex; gap: 1.5rem; font-size: 0.8rem; }
+    .foot-r a { color: var(--text-3); transition: color var(--dur) var(--ease); }
+    .foot-r a:hover { color: var(--text); }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .steps { grid-template-columns: repeat(2,1fr); }
+      .step:nth-child(2) { border-right: none; }
+      .step:nth-child(1), .step:nth-child(2) { border-bottom: 1px solid var(--border); }
+      .compare-grid { grid-template-columns: 1fr; }
+      .compare-col + .compare-col { border-left: none; border-top: 1px solid var(--border); }
+      .export-grid { grid-template-columns: repeat(2,1fr); }
+      .exp:nth-child(2n+2) { border-right: none; }
+      .exp:nth-child(2n+1) { border-right: 1px solid var(--border); }
+      .nav-links a:not(.nav-gh) { display: none; }
+    }
+    @media (max-width: 600px) {
+      .steps { grid-template-columns: 1fr; }
+      .step + .step { border-left: none; border-top: 1px solid var(--border); }
+      .export-grid { grid-template-columns: 1fr; }
+      .exp { border-right: none !important; }
+      .p-rows { grid-template-columns: 1fr; }
+      .p-lbl { border-right: none; border-bottom: none; padding-bottom: 0; }
+      .slider-wrap { aspect-ratio: 4/3; }
+    }
+  </style>
+</head>
+<body>
+
+<nav aria-label="Main navigation">
+  <div class="nav-inner">
+    <a href="#" class="wordmark">/taste<em>_</em></a>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#example">Example</a>
+      <a href="#install">Install</a>
+      <a href="https://github.com/senlindesign/taste-skill" target="_blank" rel="noopener" class="nav-gh">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub
+      </a>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+<!-- HERO -->
+<section class="hero" aria-labelledby="hero-h">
+  <div class="container">
+    <div class="pill" role="note">Claude Code Skill</div>
+    <h1 id="hero-h">Reverse-engineer any website's design taste.</h1>
+    <p class="hero-sub">Tokens + trade-offs — not just <em>what</em>, but <em>why</em>. Run <code>/taste &lt;url&gt;</code> and get a Design Map + Taste DNA ready for any AI coding tool.</p>
+    <div class="hero-actions">
+      <a href="#install" class="btn-primary">Install the skill</a>
+      <a href="https://github.com/senlindesign/taste-skill" target="_blank" rel="noopener" class="btn-ghost">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        View on GitHub
+      </a>
+    </div>
+    <div class="cmd-bar">
+      <span class="ps" aria-hidden="true">$</span>
+      <span>git clone https://github.com/senlindesign/taste-skill ~/.claude/skills/taste</span>
+      <button class="copy-btn" onclick="copyCmd(this)" aria-label="Copy install command">Copy</button>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARISON SLIDER -->
+<section aria-labelledby="slider-h">
+  <div class="container">
+    <p class="eyebrow">The difference</p>
+    <h2 id="slider-h">Tokens tell you what.<br>Taste tells you why.</h2>
+    <p class="sub">Drag to compare what Claude generates with and without design taste guidance.</p>
+    <div class="slider-wrap" id="slider" role="img" aria-label="Comparison slider: without /taste on the left, with /taste on the right">
+      <div class="s-pane">
+        <div class="pane-good">
+          <div class="pane-good-inner">
+            <div class="g-badge">Now in public beta</div>
+            <div class="demo-title">Built for teams moving at the speed of thought.</div>
+            <p>Issue tracking that gets out of your way. No setup required.</p>
+            <div class="g-card">
+              <span>DEV-241 — Fix auth token refresh</span>
+              <span>In Progress</span>
+            </div>
+            <div class="g-cta">Start building →</div>
+          </div>
+        </div>
+      </div>
+      <div class="s-pane s-after" id="s-after">
+        <div class="pane-bad">
+          <div class="demo-title">Build Something Amazing</div>
+          <p>The all-in-one platform for teams who move fast. Start for free today.</p>
+          <div class="bad-cta">Get Started Free →</div>
+        </div>
+      </div>
+      <div class="s-line" id="s-line"></div>
+      <div class="s-knob" id="s-knob" aria-hidden="true">‹ ›</div>
+      <div class="s-tag s-tag-l" aria-hidden="true">Without /taste</div>
+      <div class="s-tag s-tag-r" aria-hidden="true">With /taste</div>
+    </div>
+  </div>
+</section>
+
+<!-- THREE-COLUMN COMPARISON -->
+<section aria-labelledby="compare-h">
+  <div class="container">
+    <p class="eyebrow">Quality spectrum</p>
+    <h2 id="compare-h">The same prompt. Three levels of input.</h2>
+    <p class="sub">The AI has identical instructions each time. What changes is the design intelligence it has access to.</p>
+    <div class="compare-grid" role="list">
+      <div class="compare-col" role="listitem">
+        <div class="col-head">
+          <div class="col-tier">Level 1</div>
+          <div class="col-title">No analysis</div>
+        </div>
+        <div class="col-body">
+          <div class="mk1">
+            <div class="mk-title">Build Better, Together</div>
+            <p>The platform your team will actually love using.</p>
+            <div class="mk1-btn">Get Started Free</div>
+          </div>
+        </div>
+        <div class="col-caption">Claude invents from training data alone. Output matches generic SaaS template patterns — gradient blobs, centered hierarchy, purple CTA.</div>
+      </div>
+      <div class="compare-col" role="listitem">
+        <div class="col-head">
+          <div class="col-tier">Level 2</div>
+          <div class="col-title">DOM tokens only</div>
+        </div>
+        <div class="col-body">
+          <div class="mk2">
+            <div class="mk-title">Issue tracking that moves at your speed.</div>
+            <p>Built for high-performance teams.</p>
+            <div class="mk2-btn">Get Started Free</div>
+          </div>
+        </div>
+        <div class="col-caption">Colors and fonts are correct. Composition is still template — centered layout, decorative CTA, no restraint principle applied. Right numbers, wrong decisions.</div>
+      </div>
+      <div class="compare-col" role="listitem">
+        <div class="col-head">
+          <div class="col-tier">Level 3 — /taste</div>
+          <div class="col-title">/taste output</div>
+        </div>
+        <div class="col-body">
+          <div class="mk3">
+            <div class="mk3-badge">New · Issue tracking</div>
+            <div class="mk-title">Built for teams moving at the speed of thought.</div>
+            <p>No setup. No bloat. Just work.</p>
+            <div class="mk3-btn">Start building →</div>
+          </div>
+        </div>
+        <div class="col-caption">Principles applied: white CTA on near-black, left-aligned, tight tracking, 1px inset border, zero decoration. The design makes decisions, not just choices.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section id="how" aria-labelledby="how-h">
+  <div class="container">
+    <p class="eyebrow">Pipeline</p>
+    <h2 id="how-h">Four steps from URL to taste.</h2>
+    <p class="sub">A real browser captures the page. Then four sequential analysis steps turn raw data into design arguments.</p>
+    <div class="steps" role="list">
+      <div class="step" role="listitem">
+        <div class="step-n">Step 1</div>
+        <div class="step-name">Measure</div>
+        <div class="step-desc">20 measurement categories — every color, weight, spacing value, radius, and shadow cited with exact px / hex / ratio. No approximations.</div>
+      </div>
+      <div class="step" role="listitem">
+        <div class="step-n">Step 2</div>
+        <div class="step-name">Pattern</div>
+        <div class="step-desc">5–8 system-level rules extracted from measurements. Each pattern gets an Evidence line and a Design Goal explaining why it exists.</div>
+      </div>
+      <div class="step" role="listitem">
+        <div class="step-n">Step 3</div>
+        <div class="step-name">Taste</div>
+        <div class="step-desc">4 taste principles — each with Trigger, Decision, Reason, Evidence, and Trade-off. At least one Restraint principle is required.</div>
+      </div>
+      <div class="step" role="listitem">
+        <div class="step-n">Step 4</div>
+        <div class="step-name">Observer</div>
+        <div class="step-desc">Quality gate. Runs anti-slop grep, validates JSON, then writes the final <code>{domain}.md</code> + <code>{domain}.json</code>.</div>
+      </div>
+    </div>
+    <div class="callout" role="note">
+      <strong>Visual primacy rule:</strong> The screenshot is ground truth. DOM data supplies exact numbers — but when they conflict, the screenshot wins. A color at &lt;5% visual surface area is decorative, not a brand color. Imperceptible shadows (≤3% opacity) are CSS artifacts, not design decisions.
+    </div>
+  </div>
+</section>
+
+<!-- EXAMPLE OUTPUT -->
+<section id="example" aria-labelledby="example-h">
+  <div class="container">
+    <p class="eyebrow">Real output — linear.app</p>
+    <h2 id="example-h">A taste principle has evidence and a trade-off.</h2>
+    <p class="sub">This is what /taste actually produces — not a vibe, a design argument you can act on.</p>
+    <div class="principle">
+      <div class="p-head">
+        <div class="p-tag">Restraint</div>
+        <div class="p-name">Brand lives in white, not in color</div>
+      </div>
+      <div class="p-rows">
+        <div class="p-lbl">Trigger</div>
+        <div class="p-val">Deciding on an accent or brand color.</div>
+        <div class="p-lbl">Decision</div>
+        <div class="p-val">Don't introduce one. Use white (<span class="mono">#F7F8F8</span>) as the accent against near-black.</div>
+        <div class="p-lbl">Reason</div>
+        <div class="p-val">Color-as-brand is a shortcut for products without visual confidence. On a near-black surface, white carries all the emphasis needed — everything else is noise. Adding a purple or blue CTA button would cheapen the effect by making it feel like a template.</div>
+        <div class="p-lbl">Evidence</div>
+        <div class="p-val">Every nav link, button, and CTA on the page is white or near-white. The only colored element is a translucent green badge for functional status. The pink gradient in the hero is a single editorial moment, not a system. DOM <span class="mono">accentCandidates</span> are 100% grays and whites.</div>
+        <div class="p-lbl">Trade-off</div>
+        <div class="p-val">You cannot use color to differentiate feature tiers or calls to action. Linear resolves this with weight and size hierarchy alone — not color weight.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPORT FORMATS -->
+<section aria-labelledby="export-h">
+  <div class="container">
+    <p class="eyebrow">Works with your tools</p>
+    <h2 id="export-h">Export to any AI coding tool.</h2>
+    <p class="sub">After analysis, /taste writes a second file formatted exactly for whichever tool you're building with.</p>
+    <div class="export-grid" role="list">
+      <div class="exp" role="listitem"><div class="exp-tool">Cursor</div><div class="exp-path">.cursor/rules/{domain}-taste.mdc</div></div>
+      <div class="exp" role="listitem"><div class="exp-tool">Windsurf</div><div class="exp-path">.windsurf/rules/{domain}-taste.md</div></div>
+      <div class="exp" role="listitem"><div class="exp-tool">Claude Code</div><div class="exp-path">CLAUDE.md (appends Design Taste section)</div></div>
+      <div class="exp" role="listitem"><div class="exp-tool">GitHub Copilot</div><div class="exp-path">.github/copilot-instructions.md</div></div>
+      <div class="exp" role="listitem"><div class="exp-tool">Bolt</div><div class="exp-path">.bolt/prompt</div></div>
+      <div class="exp" role="listitem"><div class="exp-tool">Antigravity</div><div class="exp-path">GEMINI.md</div></div>
+      <div class="exp" role="listitem"><div class="exp-tool">v0 by Vercel</div><div class="exp-path">taste-tokens.css + instructions</div></div>
+      <div class="exp" role="listitem"><div class="exp-tool">Figma Make</div><div class="exp-path">taste-figma.css + instructions</div></div>
+      <div class="exp" role="listitem"><div class="exp-tool">Lovable</div><div class="exp-path">Printed to paste in Project Knowledge</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- MANIFESTO -->
+<section aria-labelledby="why-h">
+  <div class="container">
+    <p class="eyebrow">Why</p>
+    <h2 id="why-h">Tokens are not taste.</h2>
+    <div class="manifesto">
+      <p>Every design extraction tool gives you tokens. "The background is <strong>#08090A</strong>. The font is Inter. The radius is 6px." That's not taste — that's a spec sheet.</p>
+      <p>When an AI agent has only tokens, it copies the numbers without understanding the decisions behind them. The output looks vaguely right but generates slop the moment the template runs out.</p>
+      <p>Taste is the <strong>why</strong> behind the tokens: <em>why</em> this specific white instead of a branded accent color, <em>why</em> 1px inset border instead of a drop shadow, <em>why</em> the breathing room lives inside sections instead of between them. An agent with taste can make the right call on a page it's never seen. An agent with only tokens just applies the stylesheet.</p>
+    </div>
+  </div>
+</section>
+
+<!-- INSTALLATION -->
+<section id="install" aria-labelledby="install-h">
+  <div class="container">
+    <p class="eyebrow">Get started</p>
+    <h2 id="install-h">Three steps. Then run it anywhere.</h2>
+    <p class="sub">Works in Claude Code CLI, desktop app, VS Code extension, and JetBrains.</p>
+    <div class="install-steps">
+      <div class="ist">
+        <div class="ist-n" aria-hidden="true">1</div>
+        <div class="ist-body">
+          <label>Clone into your Claude skills directory</label>
+          <div class="code-block">git clone https://github.com/senlindesign/taste-skill ~/.claude/skills/taste</div>
+        </div>
+      </div>
+      <div class="ist">
+        <div class="ist-n" aria-hidden="true">2</div>
+        <div class="ist-body">
+          <label>Install Playwright MCP (one-time — downloads Chromium ~100MB)</label>
+          <div class="code-block">claude mcp add playwright -s user -- npx -y @playwright/mcp@latest --isolated</div>
+        </div>
+      </div>
+      <div class="ist">
+        <div class="ist-n" aria-hidden="true">3</div>
+        <div class="ist-body">
+          <label>Restart Claude Code, then run it on any URL</label>
+          <div class="code-block">/taste https://linear.app</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <div class="foot">
+      <div class="foot-l">MIT License · Built by <a href="https://github.com/senlindesign" target="_blank" rel="noopener">Sen Lin</a></div>
+      <div class="foot-r">
+        <a href="https://github.com/senlindesign/taste-skill" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/senlindesign/taste-skill/issues" target="_blank" rel="noopener">Issues</a>
+        <a href="https://github.com/senlindesign/taste-skill/blob/main/LICENSE" target="_blank" rel="noopener">License</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  function copyCmd(btn) {
+    navigator.clipboard.writeText('git clone https://github.com/senlindesign/taste-skill ~/.claude/skills/taste').then(() => {
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+    });
+  }
+
+  (function initSlider() {
+    const wrap = document.getElementById('slider');
+    const after = document.getElementById('s-after');
+    const line  = document.getElementById('s-line');
+    const knob  = document.getElementById('s-knob');
+    let active = false;
+
+    function move(x) {
+      const r = wrap.getBoundingClientRect();
+      const pct = Math.max(5, Math.min(95, (x - r.left) / r.width * 100));
+      const right = 100 - pct;
+      after.style.clipPath = `inset(0 ${right}% 0 0)`;
+      line.style.left  = pct + '%';
+      knob.style.left  = pct + '%';
+    }
+
+    wrap.addEventListener('mousedown',  (e) => { active = true; move(e.clientX); });
+    window.addEventListener('mousemove', (e) => { if (active) move(e.clientX); });
+    window.addEventListener('mouseup',   ()  => { active = false; });
+
+    wrap.addEventListener('touchstart', (e) => { active = true; move(e.touches[0].clientX); }, { passive: true });
+    window.addEventListener('touchmove', (e) => { if (active) move(e.touches[0].clientX); }, { passive: true });
+    window.addEventListener('touchend',  ()  => { active = false; });
+
+    move(wrap.getBoundingClientRect().left + wrap.getBoundingClientRect().width * 0.5);
+  })();
+</script>
+
+</body>
+</html>
