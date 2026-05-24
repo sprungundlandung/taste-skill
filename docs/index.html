@@ -7,7 +7,9 @@
   <meta name="description" content="Reverse-engineer any website's design taste. Tokens + trade-offs — not just what, but why. A Claude Code skill.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://api.fontshare.com">
+  <link href="https://api.fontshare.com/v2/css?f[]=sentient@1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg:        #FAFAF7;
@@ -17,12 +19,12 @@
       --text-2:    #3D3D3A;
       --text-3:    #6B6B67;
       --border:    #E2E2DC;
-      --accent:      #CF9FFC;
+      --accent:      #A569D3;
       --accent-text: #6D28D9;
-      --accent-bg:   rgba(207,159,252,0.10);
+      --accent-bg:   rgba(165,105,211,0.10);
 
-      --sans:    'Inter', system-ui, sans-serif;
-      --display: 'Inter Tight', system-ui, sans-serif;
+      --sans:    'Plus Jakarta Sans', system-ui, sans-serif;
+      --display: 'Sentient', Georgia, serif;
       --mono:    'Berkeley Mono','Fira Code','Cascadia Code',monospace;
 
       --hero-size: clamp(2.75rem, 1.5rem + 5vw, 5.25rem);
@@ -56,8 +58,7 @@
       max-width: var(--container); margin: 0 auto; padding: 0 var(--pad);
       height: 56px; display: flex; align-items: center; justify-content: space-between;
     }
-    .wordmark { font-family: var(--display); font-weight: 700; font-size: 1.05rem; letter-spacing: -0.04em; }
-    .wordmark em { color: var(--accent); font-style: normal; }
+    .wordmark { font-family: var(--sans); font-weight: 700; font-size: 1.05rem; letter-spacing: -0.02em; }
     .nav-links { display: flex; align-items: center; gap: 1.75rem; }
     .nav-links a { font-size: 0.875rem; color: var(--text-2); transition: color var(--dur) var(--ease); }
     .nav-links a:hover { color: var(--text); }
@@ -279,7 +280,7 @@
 
 <nav aria-label="Main navigation">
   <div class="nav-inner">
-    <a href="#" class="wordmark">/taste<em>_</em></a>
+    <a href="#" class="wordmark">Taste Lab</a>
     <div class="nav-links">
       <a href="#how">How it works</a>
       <a href="#example">Example</a>
