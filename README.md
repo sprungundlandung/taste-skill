@@ -3,6 +3,7 @@
 [![Made for Claude Code](https://img.shields.io/badge/Made%20for-Claude%20Code-blueviolet?style=flat-square&logo=anthropic)](https://docs.anthropic.com/en/docs/claude-code)
 [![Playwright MCP](https://img.shields.io/badge/Requires-Playwright%20MCP-1db954?style=flat-square)](https://playwright.dev/docs/api/class-playwright)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+[![Demo](https://img.shields.io/badge/Landing%20Page-→-CF9FFC?style=flat-square)](https://senlindesign.github.io/taste-skill/)
 
 Reverse-engineer any website's design taste. Tokens + trade-offs — not just "what", but "why".
 
