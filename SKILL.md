@@ -101,6 +101,20 @@ If the user did not specify an export target in their message, ask once before s
 
 Store the answer as `{exportTarget}`. If the user says "skip" or doesn't answer, set `{exportTarget}` to "skip". Do not ask again in Phase 5.
 
+**Step 4 — Crawl scope**
+
+Ask once, immediately after Step 3:
+
+> "Should I analyze just this page, or explore 2–3 linked pages from the same site for a fuller picture?
+>
+> ```
+>  1  This page only     → faster, focused on exactly what you gave me
+>  2  Explore linked pages  → I'll find and visit 2–3 nav pages and merge the data
+>                             (better for sites with distinct sections: Product, Community, Pricing…)
+> ```"
+
+Store as `{crawlScope}`: `"single"` or `"multi"`. Default to `"single"` if the user skips or answers ambiguously. Do not ask again.
+
 ### Phase 1 — Capture page data (Playwright MCP)
 
 Run these steps in order. If any step errors, stop the pipeline and report the error to the user — do not silently continue with degraded data.
@@ -149,7 +163,46 @@ Run these steps in order. If any step errors, stop the pipeline and report the e
 
 6. (Optional cleanup) The browser stays open for the rest of the session. No need to close it unless the user asks.
 
-**Success criterion for Phase 1**: you have a screenshot AND a populated `domData` JSON with `colors`, `typography`, `layout`, `effects`, `cards`, `images`, `spacingSamples`, `sectionGaps`, and `grid` fields. If any of these are completely empty *and* the screenshot shows real content, the extractor needs improvement — note it and proceed anyway.
+**Multi-page capture** (only if `{crawlScope}` is `"multi"`):
+
+After capturing the primary page, extract navigation links and visit up to 2 additional pages from the same site.
+
+**6a. Extract nav links** from the already-loaded primary page:
+
+```js
+(function() {
+  const links = [];
+  const seen = new Set([location.pathname]);
+  const skip = /\/(login|logout|signup|sign-in|register|auth|account|checkout|cart|password|reset)\b/i;
+  document.querySelectorAll('nav a, header a, [role="navigation"] a').forEach(a => {
+    try {
+      const u = new URL(a.href);
+      if (u.hostname !== location.hostname) return;
+      if (skip.test(u.pathname)) return;
+      if (seen.has(u.pathname)) return;
+      if (u.pathname === '/' && location.pathname !== '/') return;
+      seen.add(u.pathname);
+      links.push({ href: u.origin + u.pathname, text: (a.innerText || a.textContent).trim().slice(0, 40) });
+    } catch(e) {}
+  });
+  return links.slice(0, 6);
+})()
+```
+
+**6b. Pick 2 pages** from the returned list. Prefer:
+- Shorter paths (`/product` over `/product/features/detail`)
+- Distinct section names (Product, Community, Pricing, Docs — not just different slugs under the same section)
+- Avoid the root `/` if you already captured it
+
+**6c. For each additional page**, repeat the Phase 1 capture loop (navigate → wait 3s → viewport screenshot → full-page screenshot → DOM extractor). Name screenshots `taste-viewport-2.jpeg`, `taste-viewport-3.jpeg`, etc. Store each page's data as `pages[1]`, `pages[2]` (with `pages[0]` being the primary URL).
+
+If a linked page fails to load or is blocked, skip it silently and note it in the Phase 6 report.
+
+**6d. Merge data** before Phase 2. Combine color candidates across all pages (union), typography across all pages (union). When a value appears on 2+ pages it is a **system signal** — mark it. Values that appear on only one page are **local** — still capture them, but weight them lower.
+
+In Steps 1–3, always state how many pages were analyzed ("Across 3 pages: …") and distinguish system patterns from local ones. Multiple-page agreement is the strongest available evidence for a taste principle.
+
+**Success criterion for Phase 1**: you have at least one screenshot AND a populated `domData` JSON (from the primary page) with `colors`, `typography`, `layout`, `effects`, `cards`, `images`, `spacingSamples`, `sectionGaps`, and `grid` fields. If any of these are completely empty *and* the screenshot shows real content, the extractor needs improvement — note it and proceed anyway.
 
 ### Phase 2 — Run the 4-step analysis
 

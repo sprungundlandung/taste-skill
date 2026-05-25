@@ -64,7 +64,7 @@ Trade-off: Can't differentiate feature tiers by color. Hierarchy
 /taste https://www.are.na
 ```
 
-The skill asks which tool you're building with, then:
+The skill asks two setup questions, then runs:
 
 ```text
 /taste https://linear.app
@@ -75,16 +75,24 @@ Claude: Which tool are you building with?
 
 You: 3
 
+Claude: Analyze just this page, or explore 2–3 linked pages for a fuller picture?
+        1 This page only
+        2 Explore linked pages (finds Product / Community / Pricing etc.)
+
+You: 2
+
 Claude: [navigates to linear.app, takes viewport + full-page screenshots]
-        [injects DOM extractor, captures colors / fonts / spacing / shadows]
-        [runs Step 1: 20 measurement categories, exact px/hex/ratio]
-        [runs Step 2: 5-8 system-level patterns with evidence]
+        [extracts nav links → picks 2 additional pages: /features, /changelog]
+        [visits each page, captures screenshots + DOM data]
+        [merges data — values that appear on 2+ pages marked as system signals]
+        [runs Step 1: 20 measurement categories across all 3 pages]
+        [runs Step 2: 5-8 system-level patterns with cross-page evidence]
         [runs Step 3: 4 taste principles, each with trade-off]
         [runs Step 4: quality gate, writes final output]
         [runs grep anti-slop audit, validates JSON]
         [exports Design Taste section → CLAUDE.md]
 
-✓ Wrote ./linear.md (89 lines) and ./linear.json (4.2kb)
+✓ Wrote ./linear.md (89 lines) and ./linear.json (4.2kb)  [3 pages analyzed]
 ✓ Also wrote ./CLAUDE.md
 
   Sharpest principle: "Brand lives in white, not in color"
@@ -159,11 +167,15 @@ Playwright downloads its own Chromium (~100MB, one-time) on the first `browser_n
 ## How the Pipeline Works
 
 ```text
-Phase 0  Parse URL → extract {domain} → ask export target
+Phase 0  Parse URL → extract {domain} → ask export target → ask crawl scope
+           crawl scope 1: single page (default)
+           crawl scope 2: explore 2–3 linked pages from the same site
 Phase 1  Playwright:
            viewport screenshot (1440×900)  ← primary visual reference
            full-page screenshot            ← systematic cross-page check
            DOM extractor (extract.js)      ← 8000-element full-page scan
+           [if multi] extract nav links → visit 2 more pages → capture each
+           [if multi] merge data — cross-page values = system signals
 Phase 2  4-step analysis:
            Step 1 (Measure)   20 categories, exact px/hex/ratio
            Step 2 (Pattern)   5-8 system rules, Evidence + Design Goal
