@@ -390,7 +390,7 @@
     .exp { background: #F1EFE9; padding: 1.125rem 1.5rem; display: flex; align-items: center; gap: 0.875rem; }
     .exp:not(:nth-child(3n+3)) { border-right: 1px solid var(--border); }
     .exp:not(:nth-last-child(-n+3)) { border-bottom: 1px solid var(--border); }
-    .exp-icon { flex-shrink: 0; align-self: stretch; display: flex; align-items: center; justify-content: center; background: var(--bg); border-radius: var(--r); padding: 0 10px; transition: box-shadow var(--dur) var(--ease); }
+    .exp-icon { flex-shrink: 0; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; background: var(--bg); border-radius: var(--r); transition: box-shadow var(--dur) var(--ease); }
     .exp:hover .exp-icon { box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
     .exp-icon svg { width: 28px; height: 28px; }
     .exp-body { min-width: 0; }
@@ -403,12 +403,22 @@
     .manifesto strong { color: var(--text); }
 
     /* INSTALL */
+    .install-tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
+    .install-tab { padding: 0.4rem 0.9rem; border-radius: 999px; border: 1px solid var(--border); background: transparent; font-family: var(--sans); font-size: 0.8rem; font-weight: 600; color: var(--text-3); cursor: pointer; transition: all 150ms ease; }
+    .install-tab:hover { color: var(--text); border-color: var(--text-3); }
+    .install-tab.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .install-panel { display: none; }
+    .install-panel.active { display: flex; flex-direction: column; gap: 1.25rem; }
     .install-steps { display: flex; flex-direction: column; gap: 1.25rem; }
     .ist { display: flex; gap: 1.125rem; }
     .ist-n { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--bg-card); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: var(--text-3); margin-top: 2px; }
     .ist-body { flex: 1; }
     .ist-body label { display: block; font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem; }
-    .code-block { background: var(--bg-code); border: 1px solid var(--border); border-radius: var(--r); padding: 0.875rem 1rem; font-family: var(--mono); font-size: 0.8rem; color: var(--text-2); overflow-x: auto; white-space: pre; }
+    .code-wrap { position: relative; }
+    .code-block { background: var(--bg-code); border: 1px solid var(--border); border-radius: var(--r); padding: 0.875rem 3rem 0.875rem 1rem; font-family: var(--mono); font-size: 0.8rem; color: var(--text-2); overflow-x: auto; white-space: pre; }
+    .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; padding: 0.2rem 0.55rem; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; font-family: var(--sans); font-size: 0.7rem; font-weight: 600; color: var(--text-3); cursor: pointer; transition: color 120ms ease, border-color 120ms ease; }
+    .copy-btn:hover { color: var(--text); border-color: var(--text-3); }
+    .copy-btn.copied { color: var(--primary); border-color: var(--primary); }
 
     /* FOOTER */
     footer { border-top: 1px solid var(--border); padding: 1.75rem 0; }
@@ -787,27 +797,61 @@
   <div class="container">
     <p class="eyebrow">Get started</p>
     <h2 id="install-h">Three steps. Then run it anywhere.</h2>
-    <p class="sub">Works in Claude Code CLI, desktop app, VS Code extension, and JetBrains.</p>
-    <div class="install-steps">
+    <p class="sub">Works in Claude Code and Gemini CLI.</p>
+    <div class="install-tabs" role="tablist">
+      <button class="install-tab active" data-target="claude" role="tab" aria-selected="true">Claude Code</button>
+      <button class="install-tab" data-target="gemini" role="tab" aria-selected="false">Gemini CLI</button>
+    </div>
+    <div class="install-panel active" data-panel="claude" role="tabpanel">
       <div class="ist">
         <div class="ist-n" aria-hidden="true">1</div>
         <div class="ist-body">
           <label>Clone into your Claude skills directory</label>
-          <div class="code-block">git clone https://github.com/senlindesign/taste-skill ~/.claude/skills/taste</div>
+          <div class="code-wrap"><div class="code-block">git clone https://github.com/senlindesign/taste-skill ~/.claude/skills/taste</div><button class="copy-btn" aria-label="Copy">Copy</button></div>
         </div>
       </div>
       <div class="ist">
         <div class="ist-n" aria-hidden="true">2</div>
         <div class="ist-body">
           <label>Install Playwright MCP (one-time — downloads Chromium ~100MB)</label>
-          <div class="code-block">claude mcp add playwright -s user -- npx -y @playwright/mcp@latest --isolated</div>
+          <div class="code-wrap"><div class="code-block">claude mcp add playwright -s user -- npx -y @playwright/mcp@latest --isolated</div><button class="copy-btn" aria-label="Copy">Copy</button></div>
         </div>
       </div>
       <div class="ist">
         <div class="ist-n" aria-hidden="true">3</div>
         <div class="ist-body">
           <label>Restart Claude Code, then run it on any URL</label>
-          <div class="code-block">/taste https://linear.app</div>
+          <div class="code-wrap"><div class="code-block">/taste https://linear.app</div><button class="copy-btn" aria-label="Copy">Copy</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="install-panel" data-panel="gemini" role="tabpanel">
+      <div class="ist">
+        <div class="ist-n" aria-hidden="true">1</div>
+        <div class="ist-body">
+          <label>Clone into your Gemini skills directory</label>
+          <div class="code-wrap"><div class="code-block">git clone https://github.com/senlindesign/taste-skill ~/.gemini/skills/taste</div><button class="copy-btn" aria-label="Copy">Copy</button></div>
+        </div>
+      </div>
+      <div class="ist">
+        <div class="ist-n" aria-hidden="true">2</div>
+        <div class="ist-body">
+          <label>Add Playwright MCP to ~/.gemini/settings.json</label>
+          <div class="code-wrap"><div class="code-block">{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest", "--isolated"]
+    }
+  }
+}</div><button class="copy-btn" aria-label="Copy">Copy</button></div>
+        </div>
+      </div>
+      <div class="ist">
+        <div class="ist-n" aria-hidden="true">3</div>
+        <div class="ist-body">
+          <label>Restart Gemini CLI, then run it on any URL</label>
+          <div class="code-wrap"><div class="code-block">/taste https://linear.app</div><button class="copy-btn" aria-label="Copy">Copy</button></div>
         </div>
       </div>
     </div>
@@ -1069,6 +1113,34 @@
     });
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape' && modalOpen) closeModal();
+    });
+  })();
+
+  (function initCopyButtons() {
+    document.querySelectorAll('.copy-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var text = btn.previousElementSibling.textContent;
+        navigator.clipboard.writeText(text).then(function() {
+          btn.textContent = 'Copied!';
+          btn.classList.add('copied');
+          setTimeout(function() { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+        });
+      });
+    });
+  })();
+
+  (function initInstallTabs() {
+    const tabs = document.querySelectorAll('.install-tab');
+    const panels = document.querySelectorAll('.install-panel');
+    tabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        const target = tab.dataset.target;
+        tabs.forEach(function(t) { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+        document.querySelector('.install-panel[data-panel="' + target + '"]').classList.add('active');
+      });
     });
   })();
 </script>
