@@ -1,6 +1,7 @@
 # /taste — Design DNA Extractor
 
 [![Made for Claude Code](https://img.shields.io/badge/Made%20for-Claude%20Code-blueviolet?style=flat-square&logo=anthropic)](https://docs.anthropic.com/en/docs/claude-code)
+[![Works with Gemini CLI](https://img.shields.io/badge/Works%20with-Gemini%20CLI-4285F4?style=flat-square&logo=google)](https://ai.google.dev/gemini-api/docs/gemini-cli)
 [![Playwright MCP](https://img.shields.io/badge/Requires-Playwright%20MCP-1db954?style=flat-square)](https://playwright.dev/docs/api/class-playwright)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 [![Demo](https://img.shields.io/badge/Landing%20Page-→-CF9FFC?style=flat-square)](https://senlindesign.github.io/taste-skill/)
@@ -135,12 +136,9 @@ After analysis, the skill writes an additional file for your build tool:
 
 ## Installation
 
-### Prerequisites
+### Claude Code
 
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (CLI / Desktop / VS Code)
-- Playwright MCP (for real browser capture + screenshots)
-
-### Install
+**Prerequisites:** [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (CLI / Desktop / VS Code)
 
 ```bash
 # 1. Clone into your Claude skills directory
@@ -152,7 +150,41 @@ claude mcp add playwright -s user -- npx -y @playwright/mcp@latest --isolated
 # 3. Restart Claude Code
 ```
 
-That's it. Run `/taste <url>` in any project.
+Run `/taste <url>` in any project.
+
+---
+
+### Gemini CLI
+
+**Prerequisites:** [Gemini CLI](https://ai.google.dev/gemini-api/docs/gemini-cli)
+
+```bash
+# 1. Clone into your Gemini skills directory
+git clone https://github.com/senlindesign/taste-skill ~/.gemini/skills/taste
+```
+
+```bash
+# 2. Add Playwright MCP to ~/.gemini/settings.json
+```
+
+```json
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest", "--isolated"]
+    }
+  }
+}
+```
+
+```bash
+# 3. Restart Gemini CLI
+```
+
+Run `/taste <url>` in any project. If your version doesn't support slash commands, use natural language: "run taste on linear.app".
+
+---
 
 ### Why `--isolated`
 
