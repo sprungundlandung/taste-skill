@@ -404,8 +404,9 @@
     .manifesto strong { color: var(--text); }
 
     /* INSTALL */
-    .install-tabs { display: flex; gap: 0; margin-bottom: 2rem; border-bottom: 1.5px solid var(--border); }
-    .install-tab { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.25rem 0.75rem; border: none; border-bottom: 2px solid transparent; margin-bottom: -1.5px; background: transparent; font-family: var(--sans); font-size: 0.875rem; font-weight: 600; color: var(--text-3); cursor: pointer; transition: color 150ms ease, border-color 150ms ease; }
+    .install-tabs { display: flex; gap: 0; margin-bottom: 2rem; border-bottom: 1.5px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+    .install-tabs::-webkit-scrollbar { display: none; }
+    .install-tab { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.25rem 0.75rem; border: none; border-bottom: 2px solid transparent; margin-bottom: -1.5px; background: transparent; font-family: var(--sans); font-size: 0.875rem; font-weight: 600; color: var(--text-3); cursor: pointer; transition: color 150ms ease, border-color 150ms ease; white-space: nowrap; }
     .install-tab svg { flex-shrink: 0; }
     .install-tab:hover { color: var(--text); }
     .install-tab.active { color: var(--text); border-bottom-color: var(--text); }
@@ -417,7 +418,7 @@
     .ist-body { flex: 1; }
     .ist-body label { display: flex; align-items: center; min-height: 28px; font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem; }
     .code-wrap { position: relative; }
-    .code-block { background: #F1EFE9; border: 1px solid var(--border); border-radius: var(--r); padding: 0.875rem 3rem 0.875rem 1rem; font-family: var(--mono); font-size: 0.8rem; color: var(--text-2); overflow-x: auto; white-space: pre; }
+    .code-block { background: #F1EFE9; border: 1px solid var(--border); border-radius: var(--r); padding: 0.875rem 3.5rem 0.875rem 1rem; font-family: var(--mono); font-size: 0.8rem; color: var(--text-2); overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
     .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.2rem 0.55rem; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; font-family: var(--sans); font-size: 0.7rem; font-weight: 600; color: var(--text-3); cursor: pointer; transition: color 120ms ease, border-color 120ms ease; }
     .copy-btn:hover { color: var(--text); border-color: var(--text-3); }
     .copy-btn.copied { color: var(--primary); border-color: var(--primary); }
@@ -451,7 +452,8 @@
       .nav-link span { display: none; }
       .nav-link svg { width: 32px; height: 32px; }
       .nav-link .nav-avatar { width: 32px; height: 32px; padding: 2px; }
-      .nav-bmc-icon { width: 32px; height: 32px; }
+      .nav-link .nav-bmc-icon { width: 32px; height: 32px; display: flex; }
+      .nav-link .nav-bmc-icon svg { width: 18px; height: 18px; }
       .nav-links { gap: 12px; }
       .nav-install { padding-left: 12px; padding-right: 12px; font-size: 13px; }
     }
@@ -468,6 +470,8 @@
       .p-rows { grid-template-columns: 1fr; }
       .p-lbl { border-right: none; border-bottom: none; padding-bottom: 0; }
       .slider-wrap { aspect-ratio: 4/3; }
+      .install-tab { font-size: 0.8rem; padding: 0.5rem 0.75rem 0.75rem; gap: 0.35rem; flex-shrink: 0; }
+      .install-tab svg { width: 15px; height: 15px; }
     }
     .hero-title { cursor: pointer; user-select: none; }
     .hero-title.tasting {
@@ -562,7 +566,7 @@
   </style>
 </head>
 <body>
-<div id="taste-pill">Click to see what is taste?</div>
+<div id="taste-pill">Click to see what is taste</div>
 <div id="taste-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="taste-modal-title">
   <div id="taste-modal" style="position:relative">
     <button id="taste-modal-close" aria-label="Close">
@@ -870,11 +874,11 @@
 <footer>
   <div class="container">
     <div class="foot">
-      <div class="foot-l">MIT License · Built by <a href="https://github.com/senlindesign" target="_blank" rel="noopener">Sen Lin</a></div>
+      <div class="foot-l">A side project by <a href="https://www.linkedin.com/in/senlinbebop/" target="_blank" rel="noopener">Sen Lin</a></div>
       <div class="foot-r">
         <a href="https://github.com/senlindesign/taste-skill" target="_blank" rel="noopener">GitHub</a>
-        <a href="https://github.com/senlindesign/taste-skill/issues" target="_blank" rel="noopener">Issues</a>
-        <a href="https://github.com/senlindesign/taste-skill/blob/main/LICENSE" target="_blank" rel="noopener">License</a>
+        <a href="https://aiinterface.substack.com/" target="_blank" rel="noopener">Substack</a>
+        <a href="https://medium.com/@sunless77" target="_blank" rel="noopener">Medium</a>
       </div>
     </div>
   </div>
