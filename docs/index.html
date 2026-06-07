@@ -404,18 +404,19 @@
 
     /* INSTALL */
     .install-tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
-    .install-tab { padding: 0.4rem 0.9rem; border-radius: 999px; border: 1px solid var(--border); background: transparent; font-family: var(--sans); font-size: 0.8rem; font-weight: 600; color: var(--text-3); cursor: pointer; transition: all 150ms ease; }
+    .install-tab { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.4rem 0.9rem; border-radius: 999px; border: 1px solid var(--border); background: transparent; font-family: var(--sans); font-size: 0.8rem; font-weight: 600; color: var(--text-3); cursor: pointer; transition: all 150ms ease; }
+    .install-tab svg { flex-shrink: 0; }
     .install-tab:hover { color: var(--text); border-color: var(--text-3); }
-    .install-tab.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .install-tab.active { background: var(--text); border-color: var(--text); color: #fff; }
     .install-panel { display: none; }
     .install-panel.active { display: flex; flex-direction: column; gap: 1.25rem; }
     .install-steps { display: flex; flex-direction: column; gap: 1.25rem; }
     .ist { display: flex; gap: 1.125rem; }
-    .ist-n { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--bg-card); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: var(--text-3); margin-top: 2px; }
+    .ist-n { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--bg-card); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: var(--text-3); }
     .ist-body { flex: 1; }
-    .ist-body label { display: block; font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem; }
+    .ist-body label { display: flex; align-items: center; min-height: 28px; font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem; }
     .code-wrap { position: relative; }
-    .code-block { background: var(--bg-code); border: 1px solid var(--border); border-radius: var(--r); padding: 0.875rem 3rem 0.875rem 1rem; font-family: var(--mono); font-size: 0.8rem; color: var(--text-2); overflow-x: auto; white-space: pre; }
+    .code-block { background: #F1EFE9; border: 1px solid var(--border); border-radius: var(--r); padding: 0.875rem 3rem 0.875rem 1rem; font-family: var(--mono); font-size: 0.8rem; color: var(--text-2); overflow-x: auto; white-space: pre; }
     .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; padding: 0.2rem 0.55rem; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; font-family: var(--sans); font-size: 0.7rem; font-weight: 600; color: var(--text-3); cursor: pointer; transition: color 120ms ease, border-color 120ms ease; }
     .copy-btn:hover { color: var(--text); border-color: var(--text-3); }
     .copy-btn.copied { color: var(--primary); border-color: var(--primary); }
@@ -748,8 +749,8 @@
 <section aria-labelledby="export-h">
   <div class="container">
     <p class="eyebrow">Works with your tools</p>
-    <h2 id="export-h">Export to any AI coding tool.</h2>
-    <p class="sub">After analysis, /taste writes a second file formatted exactly for whichever tool you're building with.</p>
+    <h2 id="export-h">Your AI agent gets the taste.</h2>
+    <p class="sub">/taste writes a rules file formatted for whichever tool you build with — Cursor, Windsurf, Claude Code, and more. The agent reads it automatically.</p>
     <div class="export-grid" role="list">
       <div class="exp" role="listitem">
         <div class="exp-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_cursor)"><path d="M15.503 4.13082L5.89101 9.67782C5.76353 9.75142 5.65762 9.85723 5.58391 9.98465C5.5102 10.1121 5.47126 10.2566 5.47101 10.4038V21.5918C5.47101 21.8918 5.63301 22.1668 5.89101 22.3158L15.5 27.8658C15.6518 27.9532 15.8239 27.9992 15.999 27.9992C16.1742 27.9992 16.3462 27.9532 16.498 27.8658L26.108 22.3158C26.2352 22.2424 26.3409 22.1369 26.4146 22.0099C26.4883 21.8828 26.5274 21.7387 26.528 21.5918V10.4038C26.5278 10.2566 26.4888 10.1121 26.4151 9.98465C26.3414 9.85723 26.2355 9.75142 26.108 9.67782L16.497 4.13082C16.3451 4.04475 16.1736 3.99951 15.999 3.99951C15.8245 3.99951 15.6529 4.04475 15.501 4.13082M6.65701 10.3378H25.207C25.47 10.3378 25.637 10.6248 25.504 10.8528L16.23 26.9178C16.168 27.0248 16.001 26.9818 16.001 26.8578V16.3348C16.0008 16.2314 15.9735 16.1299 15.9217 16.0404C15.87 15.9509 15.7956 15.8765 15.706 15.8248L6.59601 10.5678C6.48701 10.5048 6.53201 10.3378 6.65701 10.3378Z" fill="black"/></g><defs><clipPath id="clip0_cursor"><rect width="24" height="24" fill="white" transform="translate(4 4)"/></clipPath></defs></svg></div>
@@ -799,8 +800,8 @@
     <h2 id="install-h">Three steps. Then run it anywhere.</h2>
     <p class="sub">Works in Claude Code and Gemini CLI.</p>
     <div class="install-tabs" role="tablist">
-      <button class="install-tab active" data-target="claude" role="tab" aria-selected="true">Claude Code</button>
-      <button class="install-tab" data-target="gemini" role="tab" aria-selected="false">Gemini CLI</button>
+      <button class="install-tab active" data-target="claude" role="tab" aria-selected="true"><svg width="14" height="14" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M24.998 14.949H28V18.051H25V21.079H23.513V24H22V21.079H20.513V24H19V21.079H13V24H11.488V21.079H10V24H8.487V21.079H7V18.05H4V14.95H7V9H24.998V14.949ZM10 14.949H11.488V12.102H10V14.949ZM20.51 14.949H22V12.102H20.51V14.949Z" fill="#D97757"/></svg>Claude Code</button>
+      <button class="install-tab" data-target="gemini" role="tab" aria-selected="false"><svg width="14" height="14" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M25.5858 26.4421C26.9157 27.4396 28.9102 26.7746 27.0817 24.9462C21.5965 19.6272 22.7602 5 15.9452 5C9.13021 5 10.2937 19.6272 4.80852 24.9462C2.8139 26.9408 4.97473 27.4396 6.30449 26.4421C11.4573 22.9517 11.1248 16.8015 15.9452 16.8015C20.7655 16.8015 20.433 22.9517 25.5858 26.4421Z" fill="currentColor"/></svg>Gemini CLI</button>
     </div>
     <div class="install-panel active" data-panel="claude" role="tabpanel">
       <div class="ist">
