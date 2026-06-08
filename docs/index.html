@@ -943,12 +943,24 @@
 
     const panel = document.querySelector('.hero-showcase');
     const FRAME_SCALE = 0.55;
-    let hovering = false;
+    let hovering  = false;
+    let scrolling = false;
+    let scrollResume;
 
     function setHover(state) {
       if (state === hovering) return;
       hovering = state;
-      state ? stopAuto() : startAuto();
+      if (state) stopAuto();
+      else if (!scrolling) startAuto();
+    }
+
+    function onIframeScroll() {
+      if (!scrolling) { scrolling = true; stopAuto(); }
+      clearTimeout(scrollResume);
+      scrollResume = setTimeout(function() {
+        scrolling = false;
+        if (!hovering) startAuto();
+      }, 1500);
     }
 
     function check(x, y) {
@@ -959,9 +971,7 @@
     // Tracks cursor across the parent document (outside iframes)
     document.addEventListener('mousemove', (e) => check(e.clientX, e.clientY));
 
-    // Same-origin iframes: also listen inside each iframe's document and
-    // convert iframe-local coordinates back to parent page coordinates,
-    // accounting for transform: scale(0.75).
+    // Same-origin iframes: listen for mousemove + scroll inside each iframe
     function attach(frame) {
       try {
         const doc = frame.contentDocument;
@@ -973,6 +983,7 @@
           check(ir.left + e.clientX * FRAME_SCALE,
                 ir.top  + e.clientY * FRAME_SCALE);
         });
+        doc.addEventListener('scroll', onIframeScroll, true);
       } catch (_) { /* cross-origin — silently skip */ }
     }
 
