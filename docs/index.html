@@ -124,6 +124,12 @@
       font-size: clamp(0.95rem, 0.8rem + 0.5vw, 1.5rem);
       color: var(--text-3); max-width: 50ch; line-height: 1.55; margin-bottom: 2.5rem;
     }
+    #taste-trigger {
+      color: var(--primary); cursor: pointer; white-space: nowrap;
+      transition: color 150ms ease;
+    }
+    #taste-trigger:hover { color: #0C8FA1; }
+    #taste-trigger:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 2px; }
 
     /* SHOWCASE — Mac overlay */
     .hero-showcase { display: flex; flex-direction: column; align-items: center; width: 100%; }
@@ -495,8 +501,8 @@
       box-shadow:
         0 2px 10px rgba(0,0,0,0.15),
         0 1px 3px rgba(0,0,0,0.10);
-      font-family: var(--display); font-style: italic; font-weight: 700;
-      font-size: 16px; line-height: 20px;
+      font-family: var(--sans); font-style: normal; font-weight: 600;
+      font-size: 15px; line-height: 20px; display: flex; align-items: center;
       color: rgba(255,255,255,0.92); white-space: nowrap;
       opacity: 0; transition: opacity 180ms ease;
     }
@@ -506,7 +512,7 @@
     #taste-modal-overlay {
       position: fixed; inset: 0; z-index: 300;
       background: rgba(0,0,0,0.2);
-      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
       display: flex; align-items: center; justify-content: center;
       opacity: 0; pointer-events: none;
       transition: opacity 200ms ease;
@@ -565,7 +571,7 @@
   </style>
 </head>
 <body>
-<div id="taste-pill">Click to see what is taste</div>
+<div id="taste-pill">What is taste<svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="display:inline-block;vertical-align:middle;margin-left:6px;flex-shrink:0"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
 <div id="taste-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="taste-modal-title">
   <div id="taste-modal" style="position:relative">
     <button id="taste-modal-close" aria-label="Close">
@@ -618,7 +624,7 @@
   <div class="container">
     <div class="hero-center">
       <h1 id="hero-h" class="hero-title">taste</h1>
-      <p class="hero-subtitle">Abductive reasoning for any website's design taste</p>
+      <p class="hero-subtitle">Abductive reasoning for any website's <span id="taste-trigger" role="button" tabindex="0">design taste<svg width="0.7em" height="0.7em" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="display:inline-block;vertical-align:middle;margin-left:0.25em;margin-bottom:0.05em"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></p>
       <p class="hero-desc">Reads any site's design decisions — not just the tokens, but the reasoning behind them. Run <code>/taste &lt;url&gt;</code> and get a Design Map + Taste DNA your agents can actually use.</p>
       <div class="hero-actions">
         <a href="#install" class="btn-primary" id="hero-install-btn">Install the skill</a>
@@ -1079,6 +1085,7 @@
   (function initTastePill() {
     const pill    = document.getElementById('taste-pill');
     const title   = document.getElementById('hero-h');
+    const trigger = document.getElementById('taste-trigger');
     const overlay = document.getElementById('taste-modal-overlay');
     const modal   = document.getElementById('taste-modal');
     if (!pill || !title || !overlay) return;
@@ -1087,7 +1094,7 @@
 
     function move(e) {
       pill.style.left = (e.clientX - pill.offsetWidth / 2) + 'px';
-      pill.style.top  = (e.clientY + 22) + 'px';
+      pill.style.top  = (e.clientY - pill.offsetHeight - 14) + 'px';
     }
     function openModal() {
       modalOpen = true;
@@ -1102,6 +1109,7 @@
       document.body.style.overflow = '';
     }
 
+    // Title hover — pill follows cursor
     title.addEventListener('mouseenter', function(e) {
       if (modalOpen) return;
       title.classList.add('tasting');
@@ -1116,6 +1124,14 @@
       pill.classList.remove('visible');
     });
     title.addEventListener('click', openModal);
+
+    // Subtitle "design taste" trigger
+    if (trigger) {
+      trigger.addEventListener('click', openModal);
+      trigger.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(); }
+      });
+    }
 
     document.getElementById('taste-modal-close').addEventListener('click', closeModal);
     overlay.addEventListener('click', function(e) {
