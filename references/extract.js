@@ -385,14 +385,24 @@
     data.errors.push({ section: "interaction", error: e.message });
   }
 
-  // ---------- payload size guard (60KB limit) ----------
-  const payload = JSON.stringify(data);
-  if (payload.length > 60000) {
-    if (data.spacingSamples) data.spacingSamples = data.spacingSamples.slice(0, 20);
-    if (data.colors && data.colors.backgroundColors) data.colors.backgroundColors = data.colors.backgroundColors.slice(0, 6);
-    if (data.cards) data.cards = data.cards.slice(0, 6);
-    if (data.images) data.images = data.images.slice(0, 6);
+  // ---------- payload size guard (60KB limit, tiered trimming) ----------
+  const measure = () => JSON.stringify(data).length;
+  if (measure() > 60000) {
+    // Tier 1: low-impact fields
+    if (data.spacingSamples) data.spacingSamples = data.spacingSamples.slice(0, 10);
+    if (data.images) data.images = data.images.slice(0, 4);
+    if (data.effects && data.effects.transitions) data.effects.transitions = data.effects.transitions.slice(0, 3);
     data.truncated = true;
+  }
+  if (measure() > 60000) {
+    // Tier 2: mid-impact fields
+    if (data.cards) data.cards = data.cards.slice(0, 4);
+    if (data.effects && data.effects.shadows) data.effects.shadows = data.effects.shadows.slice(0, 4);
+  }
+  if (measure() > 60000) {
+    // Tier 3: core fields (last resort)
+    if (data.colors && data.colors.backgroundColors) data.colors.backgroundColors = data.colors.backgroundColors.slice(0, 6);
+    if (data.colors && data.colors.textColors) data.colors.textColors = data.colors.textColors.slice(0, 4);
   }
 
   return data;

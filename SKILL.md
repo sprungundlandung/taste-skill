@@ -160,11 +160,11 @@ Run these steps in order. If any step errors, stop the pipeline and report the e
    mcp__playwright__browser_evaluate  function=() => document.documentElement.scrollHeight
    ```
 
-   - If **≤ 4500px**: take a normal full-page screenshot:
+   - If **≤ 6× viewport height** (≤ 5400px at 1440×900): take a normal full-page screenshot:
      ```
      mcp__playwright__browser_take_screenshot  fullPage=true  type=jpeg  filename={domain}-fullpage.jpeg
      ```
-   - If **> 4500px**: skip full-page (too tall, wastes tokens). Instead take two targeted viewport shots:
+   - If **> 6× viewport height**: skip full-page (too tall, wastes tokens). Instead take two targeted viewport shots:
      ```js
      // Mid-page (50% scroll)
      mcp__playwright__browser_evaluate  function=() => window.scrollTo(0, document.documentElement.scrollHeight * 0.5)
