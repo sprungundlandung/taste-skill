@@ -4,7 +4,7 @@
 [![Works with Gemini CLI](https://img.shields.io/badge/Works%20with-Gemini%20CLI-4285F4?style=flat-square&logo=google)](https://ai.google.dev/gemini-api/docs/gemini-cli)
 [![Playwright MCP](https://img.shields.io/badge/Requires-Playwright%20MCP-1db954?style=flat-square)](https://playwright.dev/docs/api/class-playwright)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
-[![Demo](https://img.shields.io/badge/Landing%20Page-→-CF9FFC?style=flat-square)](https://senlindesign.github.io/taste-skill/)
+[![Demo](https://img.shields.io/badge/Landing%20Page-→-CF9FFC?style=flat-square)](https://www.tastelab.xyz)
 
 Reverse-engineer any website's design taste. Tokens + trade-offs — not just "what", but "why".
 
