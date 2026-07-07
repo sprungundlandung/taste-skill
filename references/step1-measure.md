@@ -49,8 +49,10 @@ Return EXACT values (px, rem, hex, ratio) when possible. Use the DOM snapshot to
 - Be PRECISE. "12px" not "small". "16:9" not "wide".
 - If you cannot determine an exact value, write `~approx` with your best estimate from the screenshot.
 - Output as a structured list grouped by category. Group headings should match the 20 categories.
+- **Max 5 lines of data per category.** No prose, no commentary — just values and roles. If a category has more than 5 items, keep the 5 most visually significant.
 - Do NOT interpret or explain WHY. Only WHAT and HOW MUCH. Save the interpretation for Step 3.
 - Cite specific evidence (selector, hex, px) for each finding — Step 2 needs concrete numbers to detect patterns.
+- Use `domData.sizeDistribution`, `domData.weightDistribution`, `domData.spacingDistribution`, `domData.buttons`, and `domData.colors.backgroundColors[].areaPct` when available — they provide pre-counted frequency data.
 
 ## Output marker
 Begin your output with the literal line:

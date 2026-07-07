@@ -1,20 +1,36 @@
 ---
 name: taste
-description: Reverse-engineer the design taste of any website. Given a URL, captures DOM data and a screenshot via real browser, then runs a 4-step analysis to produce taste.md + taste.json with practical design tokens (colors, typography, spacing, radii, shadows, grid) AND taste DNA (Trigger → Decision → Reason → Evidence trade-offs explaining WHY the design works). Use whenever the user wants to extract a site's design system, study a competitor's visual language, port an aesthetic to a new project, or generate design guidance for an AI coding agent. Triggers on: '/taste <url>', 'analyze the design of X', 'what makes X's site good', 'extract design tokens from X', 'give me X's design DNA', 'build something in the style of X', 'I want my app to feel like X'. Output rejects AI slop ('clean', 'modern', 'user-friendly') in favor of concrete px/hex values and restraint trade-offs. Do NOT use for: scraping data, summarizing page content, or tasks unrelated to visual design.
-compatibility: Requires Playwright MCP. Claude Code: `claude mcp add playwright -s user -- npx -y @playwright/mcp@latest --isolated`. Gemini CLI: add to ~/.gemini/settings.json mcpServers block (see README).
+description: >-
+  Reverse-engineer the design taste of any website. Given a URL, captures DOM data
+  and a screenshot via real browser, then runs a 4-step analysis to produce
+  {domain}.md + {domain}.json with practical design tokens (colors, typography,
+  spacing, radii, shadows, grid) AND taste DNA (Trigger → Decision → Reason →
+  Evidence trade-offs explaining WHY the design works). Use whenever the user wants
+  to extract a site's design system, study a competitor's visual language, port an
+  aesthetic to a new project, or generate design guidance for an AI coding agent.
+  Triggers on '/taste <url>', 'analyze the design of X', 'what makes X's site good',
+  'extract design tokens from X', 'give me X's design DNA', 'build something in the
+  style of X', 'I want my app to feel like X'. Output rejects AI slop ('clean',
+  'modern', 'user-friendly') in favor of concrete px/hex values and restraint
+  trade-offs. Do NOT use for scraping data, summarizing page content, or tasks
+  unrelated to visual design.
+compatibility: >-
+  Requires Playwright MCP. Claude Code: `claude mcp add playwright -s user -- npx -y
+  @playwright/mcp@latest --isolated`. Gemini CLI: add to ~/.gemini/settings.json
+  mcpServers block (see README).
 metadata:
-  version: "1.0.0"
-  author: taste
+  version: "1.1.0"
+  author: Senlin
 ---
 
 # Taste — Reverse-Engineer a Website's Design DNA
 
 This skill turns a URL into two files:
 
-- **`./taste.md`** — human-readable. Two sections:
+- **`./{domain}.md`** — human-readable. Two sections:
   - **Design Map** — practical tokens (colors, type scale, spacing, radii, shadows, grid)
   - **Taste DNA** — 3-4 opinionated trade-offs (Trigger → Decision → Reason → Evidence)
-- **`./taste.json`** — structured. Same data, machine-parseable, for downstream tools (Cursor, Windsurf, design systems).
+- **`./{domain}.json`** — structured. Same data, machine-parseable, for downstream tools (Cursor, Windsurf, design systems).
 
 The pipeline rejects generic descriptions like "clean and modern". A finished `taste.md` should read like a senior designer explaining *why* this particular page made *these particular* choices — and what plausible alternatives it rejected.
 
@@ -80,12 +96,13 @@ From the URL, extract the hostname and strip any `www.` prefix. Examples:
 
 Store this as `{domain}`. All output files will be named after it: `{domain}.md`, `{domain}.json`, and any export file. Never use the generic name `taste.md` — that name collides when the user runs this skill on multiple sites in the same directory.
 
-**Step 3 — Export target**
+**Step 3 — Export target + Crawl scope**
 
-If the user did not specify an export target in their message, ask once before starting the analysis:
+If the user already specified both an export target AND crawl scope in their message, skip this question entirely. If either is missing, ask once in a single message:
 
-> "Which tool are you building with? I'll format the output to match what it reads automatically.
+> "Two quick questions before I start:
 >
+> **Export target** — which tool are you building with?
 > ```
 >  1  Cursor          → .cursor/rules/{domain}-taste.mdc
 >  2  Windsurf        → .windsurf/rules/{domain}-taste.md
@@ -97,23 +114,15 @@ If the user did not specify an export target in their message, ask once before s
 >  8  Figma Make      → taste-figma.css + instructions
 >  9  Lovable         → print text to paste in Project Knowledge
 > 10  Skip            → keep {domain}.md + {domain}.json only
-> ```"
-
-Store the answer as `{exportTarget}`. If the user says "skip" or doesn't answer, set `{exportTarget}` to "skip". Do not ask again in Phase 5.
-
-**Step 4 — Crawl scope**
-
-Ask once, immediately after Step 3:
-
-> "Should I analyze just this page, or explore 2–3 linked pages from the same site for a fuller picture?
->
 > ```
->  1  This page only     → faster, focused on exactly what you gave me
->  2  Explore linked pages  → I'll find and visit 2–3 nav pages and merge the data
->                             (better for sites with distinct sections: Product, Community, Pricing…)
+>
+> **Crawl scope** — this page only, or explore 2–3 linked pages?
+> ```
+>  1  This page only       → faster, focused on exactly what you gave me
+>  2  Explore linked pages → I'll visit 2–3 nav pages and merge the data
 > ```"
 
-Store as `{crawlScope}`: `"single"` or `"multi"`. Default to `"single"` if the user skips or answers ambiguously. Do not ask again.
+Store answers as `{exportTarget}` and `{crawlScope}`. Defaults: `{exportTarget}` = "skip", `{crawlScope}` = "single". Do not ask again.
 
 ### Phase 1 — Capture page data (Playwright MCP)
 
@@ -143,15 +152,31 @@ Run these steps in order. If any step errors, stop the pipeline and report the e
 
    **4a. Viewport screenshot** (1440×900, un-scaled — this is your primary visual reference for Step 1):
    ```
-   mcp__playwright__browser_take_screenshot  type=jpeg  filename=taste-viewport.jpeg
+   mcp__playwright__browser_take_screenshot  type=jpeg  filename={domain}-viewport.jpeg
    ```
 
-   **4b. Full-page screenshot** (for systematic color/layout checking across the whole page):
+   **4b. Conditional full-page screenshot** — first check page height:
    ```
-   mcp__playwright__browser_take_screenshot  fullPage=true  type=jpeg  filename=taste-fullpage.jpeg
+   mcp__playwright__browser_evaluate  function=() => document.documentElement.scrollHeight
    ```
 
-   Use the **viewport screenshot** as the primary visual reference in Step 1 — it represents the first impression the designer intended. Use the full-page screenshot to verify patterns that only appear lower on the page (footer typography, late-section color variations, etc.). JPEG keeps token cost down vs. PNG.
+   - If **≤ 4500px**: take a normal full-page screenshot:
+     ```
+     mcp__playwright__browser_take_screenshot  fullPage=true  type=jpeg  filename={domain}-fullpage.jpeg
+     ```
+   - If **> 4500px**: skip full-page (too tall, wastes tokens). Instead take two targeted viewport shots:
+     ```js
+     // Mid-page (50% scroll)
+     mcp__playwright__browser_evaluate  function=() => window.scrollTo(0, document.documentElement.scrollHeight * 0.5)
+     mcp__playwright__browser_take_screenshot  type=jpeg  filename={domain}-mid.jpeg
+     // Footer
+     mcp__playwright__browser_evaluate  function=() => window.scrollTo(0, document.documentElement.scrollHeight)
+     mcp__playwright__browser_take_screenshot  type=jpeg  filename={domain}-footer.jpeg
+     // Scroll back to top
+     mcp__playwright__browser_evaluate  function=() => window.scrollTo(0, 0)
+     ```
+
+   Use the **viewport screenshot** as the primary visual reference in Step 1 — it represents the first impression the designer intended. Use the full-page or mid+footer screenshots to verify patterns that only appear lower on the page (footer typography, late-section color variations, etc.). JPEG keeps token cost down vs. PNG.
 
 5. **Run the DOM extractor**. Read `references/extract.js` and pass its **entire contents** as the `function` argument:
 
@@ -194,7 +219,7 @@ After capturing the primary page, extract navigation links and visit up to 2 add
 - Distinct section names (Product, Community, Pricing, Docs — not just different slugs under the same section)
 - Avoid the root `/` if you already captured it
 
-**6c. For each additional page**, repeat the Phase 1 capture loop (navigate → wait 3s → viewport screenshot → full-page screenshot → DOM extractor). Name screenshots `taste-viewport-2.jpeg`, `taste-viewport-3.jpeg`, etc. Store each page's data as `pages[1]`, `pages[2]` (with `pages[0]` being the primary URL).
+**6c. For each additional page**, run a lighter capture loop (navigate → wait 3s → viewport screenshot only → DOM extractor). Skip full-page/mid/footer screenshots for pages 2-3 — the viewport is enough to confirm design consistency, and the DOM extractor captures the full page regardless. Name screenshots `{domain}-viewport-2.jpeg`, `{domain}-viewport-3.jpeg`. Store each page's data as `pages[1]`, `pages[2]` (with `pages[0]` being the primary URL).
 
 If a linked page fails to load or is blocked, skip it silently and note it in the Phase 6 report.
 
@@ -203,6 +228,8 @@ If a linked page fails to load or is blocked, skip it silently and note it in th
 In Steps 1–3, always state how many pages were analyzed ("Across 3 pages: …") and distinguish system patterns from local ones. Multiple-page agreement is the strongest available evidence for a taste principle.
 
 **Success criterion for Phase 1**: you have at least one screenshot AND a populated `domData` JSON (from the primary page) with `colors`, `typography`, `layout`, `effects`, `cards`, `images`, `spacingSamples`, `sectionGaps`, and `grid` fields. If any of these are completely empty *and* the screenshot shows real content, the extractor needs improvement — note it and proceed anyway.
+
+**Degraded-data path**: if `domData.errors` is non-empty, the extractor partially failed. In Step 1, mark affected categories with `~approx (extractor section failed)` and rely on the screenshot for those measurements. In Phase 6, list the failed sections as a caveat in the report.
 
 ### Phase 2 — Run the 4-step analysis
 
@@ -255,13 +282,13 @@ If either file already exists, overwrite without asking. Users invoking this ski
 Run this grep via the Bash tool — do not scan mentally:
 
 ```bash
-grep -icE 'clean|modern|sleek|visually appealing|user-friendly|intuitive|seamless|\belegant\b|minimalist|polished|refined' ./{domain}.md
+grep -icE 'clean|modern|sleek|visually appealing|user-friendly|intuitive|seamless|\belegant\b|minimalist|polished|refined|sophisticated|delightful|stunning|\bbeautiful\b|\bpremium\b' ./{domain}.md
 ```
 
 If the count is **0**, the file passes. If **>0**, show the offending lines:
 
 ```bash
-grep -inE 'clean|modern|sleek|visually appealing|user-friendly|intuitive|seamless|\belegant\b|minimalist|polished|refined' ./{domain}.md
+grep -inE 'clean|modern|sleek|visually appealing|user-friendly|intuitive|seamless|\belegant\b|minimalist|polished|refined|sophisticated|delightful|stunning|\bbeautiful\b|\bpremium\b' ./{domain}.md
 ```
 
 For each hit:
@@ -294,7 +321,7 @@ If `{exportTarget}` is "all", generate every file-based format (options 1–8).
 
 Otherwise, use `{exportTarget}` to determine the export. Accept natural-language equivalents: "cursor", "windsurf", "claude" / "claude code", "copilot", "bolt", "antigravity" / "gemini", "v0", "figma" / "figma make", "lovable".
 
-Read `references/export-formats.md` for the exact file paths, frontmatter structure, and content spec for each target. All formats draw from `taste.json` and must follow the same Anti-Slop rules — no vague vibes, cite specific px/hex.
+Read `references/export-formats.md` for the exact file paths, frontmatter structure, and content spec for each target. All formats draw from `{domain}.json` and must follow the same Anti-Slop rules — no vague vibes, cite specific px/hex.
 
 ### Phase 6 — Report
 
@@ -322,7 +349,7 @@ Keep it tight. The files do the talking.
 | SPA still rendering after the wait | After two 3-second waits, proceed with what's there. Add a one-line caveat to the report: "Page may have been mid-hydration; some measurements approximate." |
 | User gave a file path, not a URL | Ask whether they meant a hosted version. Don't try to open local files — this skill is for live pages. |
 | User gave a URL behind a login | Detect the login page (form with password input). Tell the user this skill doesn't handle authenticated pages, suggest using the public marketing page instead. |
-| Step 4 returns malformed JSON | Re-run Step 4 once with the specific parse error pointed out. If it fails again, save the raw output as `./taste-raw.md` and tell the user to inspect manually. |
+| Step 4 returns malformed JSON | Re-run Step 4 once with the specific parse error pointed out. If it fails again, save the raw output as `./{domain}-raw.md` and tell the user to inspect manually. |
 
 ## Notes on philosophy (read once, internalize, then mostly forget)
 

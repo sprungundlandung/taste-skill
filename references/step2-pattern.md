@@ -47,7 +47,7 @@ For EACH pattern, return exactly this structure:
 - **Design Goal**: [what this pattern achieves for the user — not the philosophy, the function]
 ```
 
-Return 5-8 patterns. Every pattern MUST cite concrete evidence from Step 1. If you can't tie a pattern to numbers, drop it.
+Return 5-8 patterns. Every pattern MUST cite concrete evidence from Step 1. If you can't tie a pattern to numbers, drop it. **Each pattern block must be ≤ 4 lines** (Pattern + Evidence + Design Goal + optional one-line note). No prose paragraphs.
 
 ## Output marker
 

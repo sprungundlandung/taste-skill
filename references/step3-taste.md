@@ -51,7 +51,7 @@ For EACH taste principle, return exactly this structure:
 - **Evidence**: [specific measurements / patterns from Step 1 and Step 2 that prove this]
 ```
 
-Generate 4-6 candidates, then converge to the best 4 in your final output. Each MUST reference concrete evidence from Step 1 and Step 2.
+Generate 4-6 candidates, then converge to the best 4 in your final output. Each MUST reference concrete evidence from Step 1 and Step 2. **During the candidate phase, write each candidate as a single line** (Name — Decision — key evidence). Only expand the final 4 into the full Trigger/Decision/Reason/Evidence structure.
 
 **MANDATORY**: at least one of your 4 principles MUST be a *restraint* trade-off — something this design deliberately chose NOT to do that comparable sites typically do. Look for absent elements: no illustrations, no dark mode, no hero background images, no decorative gradients, no multiple font families, no animation, no card shadows. The absence of something common IS a design decision.
 
@@ -62,6 +62,8 @@ Generate 4-6 candidates, then converge to the best 4 in your final output. Each 
 - "intuitive design", "seamless experience"
 - "elegant", "minimalist" (without specifics)
 - "polished", "refined" (without specifics)
+- "sophisticated", "delightful", "stunning"
+- "beautiful", "premium" (without specifics)
 
 If you catch yourself reaching for these, stop and ask: *what is the actual trade-off here?*
 

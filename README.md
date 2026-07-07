@@ -250,6 +250,17 @@ taste/
 
 ---
 
+## Changelog
+
+### v1.1.0
+
+- **P0**: Fixed `isVisible` crash in extract.js (renamed to `isRendered`), fixed YAML frontmatter parsing, unified output naming to `{domain}.*` across all files
+- **P1**: Conditional full-page screenshot (skip if page > 4500px), viewport-only for multi-page captures, merged Phase 0 questions into single message, added verbosity caps to step outputs
+- **P1**: Single-pass style sampling in extract.js (one `getComputedStyle` per element), payload size guard (60KB), data URI replacement for images
+- **P2**: New extract.js fields: `sizeDistribution`, `weightDistribution`, `spacingDistribution`, `buttons`, `backgroundColors[].areaPct`, `gridCount`; extended anti-slop banned list; degraded-data path for partial extractor failures
+
+---
+
 ## Contributing
 
 Issues and PRs welcome. If you run `/taste` on a site and the output is weak (no real trade-offs, vague principles), open an issue with the URL and paste the output — that's the most useful signal for improving the prompts.
