@@ -186,6 +186,34 @@ Run `/taste <url>` in any project. If your version doesn't support slash command
 
 ---
 
+### Codex (OpenAI)
+
+The Codex desktop app uses the same `SKILL.md` skills format and scans
+`~/.codex/skills/`, so it installs like any other skill. Point Codex at a
+Playwright MCP server in `~/.codex/config.toml`. Full detail (including the
+Codex CLI `prompts/` fallback and tool-name namespace) is in
+[`adapters/codex.md`](adapters/codex.md).
+
+```bash
+# 1. Install the skill (symlink to share one copy with Claude Code, or clone)
+ln -s ~/.claude/skills/taste ~/.codex/skills/taste
+
+# 2. Add Playwright to ~/.codex/config.toml
+#    [mcp_servers.playwright]
+#    command = "npx"
+#    args = ["-y", "@playwright/mcp@latest", "--isolated"]
+
+# 3. Restart Codex
+```
+
+### Any other LLM / harness (Cursor, Windsurf, custom agents)
+
+The workflow is plain instructions. Point your model at `WORKFLOW.md`, give it
+a Playwright-equivalent browser capability, and it runs. See
+[`adapters/generic.md`](adapters/generic.md).
+
+---
+
 ### Why `--isolated`
 
 Every `/taste` run starts with a fresh browser state. Without it, running `/taste https://linear.app` while signed into Linear would analyze the app dashboard instead of the public marketing page — wrong surface, wrong taste.
@@ -227,7 +255,13 @@ Phase 6  Report
 
 ```text
 taste/
-├── SKILL.md                    # Skill entry point + full workflow
+├── WORKFLOW.md                 # Portable core: the full workflow (single source of truth)
+├── SKILL.md                    # Entry point for skill-based harnesses (Claude Code, Gemini CLI, Codex) → points at WORKFLOW.md
+├── adapters/                   # Per-harness install + browser tool-name mapping
+│   ├── claude-code.md
+│   ├── gemini-cli.md
+│   ├── codex.md
+│   └── generic.md              # Any other LLM / harness
 └── references/
     ├── extract.js              # Browser-injected DOM extractor (8k-element full-page)
     ├── step1-measure.md        # Step 1 prompt: 20 measurement dimensions
@@ -236,6 +270,12 @@ taste/
     ├── step4-observer.md       # Step 4 prompt: quality gate + final output schema
     └── export-formats.md       # Spec for all 9 export formats
 ```
+
+**Harness-neutral by design.** The workflow lives once in `WORKFLOW.md`. Each
+harness gets a thin adapter that only covers what differs: how to install the
+Playwright browser dependency, what the browser tools are named there, and how
+the command is invoked. Adding a new harness means writing one adapter, not
+forking the workflow.
 
 ---
 
@@ -251,6 +291,11 @@ taste/
 ---
 
 ## Changelog
+
+### v1.2.0
+
+- **Harness-neutral restructure**: extracted the full workflow into `WORKFLOW.md` (single source of truth) and slimmed `SKILL.md` to a thin entry point that points at it. Added `adapters/` (`claude-code`, `gemini-cli`, `codex`, `generic`) covering per-harness install and browser tool-name namespaces. The skill now runs on any `SKILL.md`-discovering harness (Claude Code, Gemini CLI, Codex desktop) plus any MCP-capable LLM given `WORKFLOW.md`. `references/` and `extract.js` unchanged.
+- Added Phase 0 output-routing flags (`--client <name>`, `--output <path>`) with `{outputDir}`/`{outputFilename}` used across Phases 3/4/6.
 
 ### v1.1.0
 
