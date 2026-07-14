@@ -182,13 +182,88 @@ the error to the user — do not silently continue with degraded data.
 
    The tool returns a JSON object. Save it mentally as `domData` — you'll feed it into Step 1.
 
-6. (Optional cleanup) The browser stays open for the rest of the session. No need to close it unless the user asks.
+6. **Client logo capture** — run this step **only in client-context runs**:
+   `--client <name>` was passed, or `{outputDir}` resolves inside a
+   `knowledge-base/clients/` folder (the `--output` form other skills use).
+   Skip it entirely for bare `/taste <url>` runs.
+
+   Downstream consumers (e.g. content-composer's Q0b brand-context step) look
+   for `logo.png` / `logo.svg` / `logo.jpg` in the client folder and use it
+   silently when present — capturing it here removes an interactive question
+   later. Rules:
+
+   - **Never overwrite**: if any `{outputDir}/logo.*` already exists, skip
+     this step silently — an existing logo may be curated.
+   - This step is **best-effort and never blocks the pipeline**: on any
+     failure, note it for the Phase 6 report and continue.
+
+   **6a. Locate the logo** on the already-loaded primary page:
+
+   ```js
+   (function() {
+     const scope = document.querySelector('header') || document.querySelector('nav') || document.body;
+     // 1) an <img> that self-identifies as a logo, or sits inside a home link
+     const imgs = [...scope.querySelectorAll('img')].filter(im => {
+       const hay = ((im.alt||'') + ' ' + (im.className||'') + ' ' + (im.id||'') + ' ' + (im.src||'')).toLowerCase();
+       let home = false;
+       try { const a = im.closest('a'); home = a && new URL(a.href, location.href).pathname === '/'; } catch(e) {}
+       return hay.includes('logo') || home;
+     });
+     const im = imgs.find(i => i.offsetWidth > 16 && i.offsetHeight > 8);
+     if (im) {
+       const src = im.currentSrc || im.src;
+       if (src) return { type: src.startsWith('data:') ? 'data' : 'url', src: src, alt: im.alt || '' };
+     }
+     // 2) an inline <svg> inside a home link or logo-classed element
+     const svgHost = scope.querySelector('a[href="/"] svg, [class*="logo" i] svg, a[aria-label*="home" i] svg');
+     if (svgHost) {
+       const s = svgHost.cloneNode(true);
+       if (!s.getAttribute('xmlns')) s.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+       // Inline sprite references — a standalone file can't reach the page's
+       // <symbol>/sprite definitions, so <use href="#id"> would render empty.
+       const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+       let unresolved = false;
+       s.querySelectorAll('use').forEach(u => {
+         const ref = u.getAttribute('href') || u.getAttribute('xlink:href') || '';
+         if (!ref.startsWith('#')) { unresolved = true; return; }
+         const node = document.getElementById(ref.slice(1));
+         if (node) defs.appendChild(node.cloneNode(true)); else unresolved = true;
+       });
+       if (unresolved) return { type: 'svg-unresolved' };
+       if (defs.childNodes.length) s.insertBefore(defs, s.firstChild);
+       return { type: 'svg', markup: s.outerHTML };
+     }
+     return null;
+   })()
+   ```
+
+   **6b. Save it** into the client folder:
+
+   - `type: "svg"` → write `markup` to `{outputDir}/logo.svg`.
+   - `type: "url"` → take the extension from the URL path (`.svg`, `.png`,
+     `.jpg`/`.jpeg`; anything else → skip with a note, don't guess at
+     conversions) and download via shell:
+     `curl -fsSL "<src>" -o "{outputDir}/logo.<ext>"` — verify the file is
+     non-empty afterwards.
+   - `type: "data"` → decode the data-URI with `python3` (extension from the
+     MIME type; skip non-svg/png/jpeg with a note).
+   - `type: "svg-unresolved"` → the SVG references a sprite the snippet could
+     not resolve (external `use` href or missing symbol) — treat as
+     unextractable, same as `null`.
+   - `null` → the logo is a CSS background, font icon, or otherwise
+     unextractable — note it; the downstream workflow will ask the user
+     instead (its option 1/2/3 logo prompt).
+   - Sanity check a saved `logo.svg`: it must contain a `viewBox` or
+     `width`/`height`, and no remaining `<use` whose target is not inside the
+     file. If the check fails, delete the file and report "not captured".
+
+7. (Optional cleanup) The browser stays open for the rest of the session. No need to close it unless the user asks.
 
 **Multi-page capture** (only if `{crawlScope}` is `"multi"`):
 
 After capturing the primary page, extract navigation links and visit up to 2 additional pages from the same site.
 
-**6a. Extract nav links** from the already-loaded primary page:
+**8a. Extract nav links** from the already-loaded primary page:
 
 ```js
 (function() {
@@ -210,16 +285,16 @@ After capturing the primary page, extract navigation links and visit up to 2 add
 })()
 ```
 
-**6b. Pick 2 pages** from the returned list. Prefer:
+**8b. Pick 2 pages** from the returned list. Prefer:
 - Shorter paths (`/product` over `/product/features/detail`)
 - Distinct section names (Product, Community, Pricing, Docs — not just different slugs under the same section)
 - Avoid the root `/` if you already captured it
 
-**6c. For each additional page**, run a lighter capture loop (navigate → wait 3s → viewport screenshot only → DOM extractor). Skip full-page/mid/footer screenshots for pages 2-3 — the viewport is enough to confirm design consistency, and the DOM extractor captures the full page regardless. Name screenshots `{domain}-viewport-2.jpeg`, `{domain}-viewport-3.jpeg`. Store each page's data as `pages[1]`, `pages[2]` (with `pages[0]` being the primary URL).
+**8c. For each additional page**, run a lighter capture loop (navigate → wait 3s → viewport screenshot only → DOM extractor). Skip full-page/mid/footer screenshots for pages 2-3 — the viewport is enough to confirm design consistency, and the DOM extractor captures the full page regardless. Name screenshots `{domain}-viewport-2.jpeg`, `{domain}-viewport-3.jpeg`. Store each page's data as `pages[1]`, `pages[2]` (with `pages[0]` being the primary URL).
 
 If a linked page fails to load or is blocked, skip it silently and note it in the Phase 6 report.
 
-**6d. Merge data** before Phase 2. Combine color candidates across all pages (union), typography across all pages (union). When a value appears on 2+ pages it is a **system signal** — mark it. Values that appear on only one page are **local** — still capture them, but weight them lower.
+**8d. Merge data** before Phase 2. Combine color candidates across all pages (union), typography across all pages (union). When a value appears on 2+ pages it is a **system signal** — mark it. Values that appear on only one page are **local** — still capture them, but weight them lower.
 
 In Steps 1–3, always state how many pages were analyzed ("Across 3 pages: …") and distinguish system patterns from local ones. Multiple-page agreement is the strongest available evidence for a taste principle.
 
@@ -326,6 +401,10 @@ Print to the user (substitute actual `{domain}`, line count, and byte count):
 ```
 ✓ Wrote {outputDir}/{outputFilename} (<line-count> lines) and {outputDir}/{domain}.json (<byte-count> bytes)
 [if export file(s) written]: ✓ Also wrote <path(s)>
+[client runs — one of]:
+  ✓ Saved site logo to {outputDir}/logo.<ext>
+  · Logo already present ({outputDir}/logo.<ext>) — kept as-is
+  ✗ Logo not captured (<reason>) — the content workflow will ask for it at its brand-context step
 
   Sharpest principle: "<name of the strongest taste principle>"
   → <one-sentence quote of its Decision>
@@ -345,6 +424,7 @@ Keep it tight. The files do the talking.
 | SPA still rendering after the wait | After two 3-second waits, proceed with what's there. Add a one-line caveat to the report: "Page may have been mid-hydration; some measurements approximate." |
 | User gave a file path, not a URL | Ask whether they meant a hosted version. Don't try to open local files — this skill is for live pages. |
 | User gave a URL behind a login | Detect the login page (form with password input). Tell the user this skill doesn't handle authenticated pages, suggest using the public marketing page instead. |
+| Logo capture fails (client runs) | Never fatal. Skip, keep the taste pipeline going, and report the reason in Phase 6 — downstream workflows have their own logo prompt as fallback. |
 | Step 4 returns malformed JSON | Re-run Step 4 once with the specific parse error pointed out. If it fails again, save the raw output as `{outputDir}/{domain}-raw.md` and tell the user to inspect manually. |
 
 ## Notes on philosophy (read once, internalize, then mostly forget)
