@@ -237,16 +237,18 @@ the error to the user — do not silently continue with degraded data.
    })()
    ```
 
-   **6b. Save it** into the client folder:
+   **6b. Save it** into the client folder. Use exactly one of three canonical
+   extensions — `svg`, `png`, `jpg` — so downstream consumers that look for
+   `logo.{png,svg,jpg}` always find it. **Normalise `.jpeg` → `.jpg`.**
 
    - `type: "svg"` → write `markup` to `{outputDir}/logo.svg`.
    - `type: "url"` → take the extension from the URL path (`.svg`, `.png`,
-     `.jpg`/`.jpeg`; anything else → skip with a note, don't guess at
-     conversions) and download via shell:
+     `.jpg`/`.jpeg` — save `.jpeg` as `logo.jpg`; anything else → skip with a
+     note, don't guess at conversions) and download via shell:
      `curl -fsSL "<src>" -o "{outputDir}/logo.<ext>"` — verify the file is
      non-empty afterwards.
    - `type: "data"` → decode the data-URI with `python3` (extension from the
-     MIME type; skip non-svg/png/jpeg with a note).
+     MIME type, `image/jpeg` → `jpg`; skip non-svg/png/jpeg with a note).
    - `type: "svg-unresolved"` → the SVG references a sprite the snippet could
      not resolve (external `use` href or missing symbol) — treat as
      unextractable, same as `null`.
